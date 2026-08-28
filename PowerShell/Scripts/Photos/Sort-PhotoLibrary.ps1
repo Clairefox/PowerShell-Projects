@@ -25,7 +25,12 @@ param (
     [string]$folderPath
 )
 
-$if ($null -eq $folderPath) {
+
+#region Variables
+$report = @{} # Table to hold counts of picture destinations
+#endregion
+
+if ($null -eq $folderPath) {
     $folderPath = Read-Host "Please provide folder path of photo library: "
 }
 
@@ -36,9 +41,7 @@ if (Test-Path -Path $folderPath -PathType Container) {
     exit;
 }
 
-$report = @{}
-
-function Set-libraryFolder ($libraryYear, $libraryMonth) {
+function Set-LibraryFolder ($libraryYear, $libraryMonth) {
     $path = ".\$libraryYear\$libraryMonth"
     if !(Test-Path $path){
         New-Item -Path $path -ItemType Directory
@@ -47,8 +50,13 @@ function Set-libraryFolder ($libraryYear, $libraryMonth) {
     }
 } # end function Set-LibraryFolder
 
-# TODO: Based on filetype, sort only images into the year/month folders
-#       and increment report dict counters as applicable
-$photos = Get-ChildItem
+function Add-ReportData ($year, $month<#, $ext#>) {
+    $report.Add("Year", $year)
+}
 
-# TODO: Report number of files sorted and where they were sent
+function Get-SourcePhotos ($path) {
+    $items = Get-ChildItem $path -Recurse | Where-Object { $_.PSIsContainer -eq $false }
+    # Do I really want the recurse? What if I already organized some photos into a separate event photo folder..
+    return $items
+}
+
